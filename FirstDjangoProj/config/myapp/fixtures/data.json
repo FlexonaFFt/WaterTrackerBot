@@ -1,0 +1,95 @@
+[
+  {
+    "model": "myapp.author",
+    "pk": 1,
+    "fields": {
+      "first_name": "Лев",
+      "last_name": "Толстой",
+      "biography": "Один из величайших русских писателей"
+    }
+  },
+  {
+    "model": "myapp.author", 
+    "pk": 2,
+    "fields": {
+      "first_name": "Федор",
+      "last_name": "Достоевский",
+      "biography": "Выдающийся русский писатель, мыслитель и философ"
+    }
+  },
+  {
+    "model": "myapp.author",
+    "pk": 3,
+    "fields": {
+      "first_name": "Джоан", 
+      "last_name": "Роулинг",
+      "biography": "Британская писательница, автор серии книг о Гарри Поттере"
+    }
+  },
+  {
+    "model": "myapp.genre",
+    "pk": 1, 
+    "fields": {
+      "name": "Роман",
+      "description": "Жанр прозаического эпического повествования"
+    }
+  },
+  {
+    "model": "myapp.genre",
+    "pk": 2,
+    "fields": {
+      "name": "Повесть",
+      "description": "Небольшое прозаическое произведение"  
+    }
+  },
+  {
+    "model": "myapp.genre",
+    "pk": 3,
+    "fields": {
+      "name": "Фантастика", 
+      "description": "Жанр, в котором описываются несуществующие миры и события"
+    }
+  }, 
+  {
+    "model": "myapp.book",
+    "pk": 1,
+    "fields": {
+      "title": "Война и мир",
+      "description": "Эпический исторический роман о России в эпоху наполеоновских войн",   
+      "publication_date": "1865-12-19",
+      "num_pages": 1225,
+      "price": "790.00",
+      "genres": [1], 
+      "author": 1,
+      "is_bestseller": true
+    }
+  },
+  {
+    "model": "myapp.book", 
+    "pk": 2,
+    "fields": {
+      "title": "Преступление и наказание", 
+      "description": "Роман о моральном падении и последующем возрождении главного героя",
+      "publication_date": "1866-01-01",  
+      "num_pages": 576,
+      "price": "550.00",
+      "genres": [1],   
+      "author": 2,
+      "is_bestseller": false
+    }
+  },
+  {
+    "model": "myapp.book",
+    "pk": 3,
+    "fields": {
+      "title": "Гарри Поттер и философский камень",
+      "description": "Первая книга о юном волшебнике Гарри Поттере",
+      "publication_date": "1997-06-26",
+      "num_pages": 309,
+      "price": "650.00",
+      "genres": [3],
+      "author": 3,
+      "is_bestseller": true
+    }
+  } 
+]

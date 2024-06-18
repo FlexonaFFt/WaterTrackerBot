@@ -1,0 +1,25 @@
+{% extends 'base.html' %} {% block content %}
+
+<div class="container mt-5">
+    <h1>Писатели</h1>
+    <div class="row">
+        {% for author in authors %}
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        {{ author.first_name }} {{ author.last_name }}
+                    </h5>
+                    <p class="card-text">
+                        {% if author.biography %} {{
+                        author.biography|truncatewords:30 }} {% else %}
+                        Биографии пока нет {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

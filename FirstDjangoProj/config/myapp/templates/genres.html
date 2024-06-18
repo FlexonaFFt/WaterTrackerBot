@@ -1,0 +1,24 @@
+{% extends 'base.html' %} {% block content %}
+
+<div class="container mt-5">
+    <h1>Жанры</h1>
+    <div class="row">
+        {% for genre in genres %}
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">{{ genre.name }}</h5>
+                    <p class="card-text">
+                        {% if genre.description %} {{
+                        genre.description|truncatewords:30 }} {% else %}
+                        Описания пока мет {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

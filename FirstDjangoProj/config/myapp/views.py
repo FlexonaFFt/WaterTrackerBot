@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from .models import Author, Book, Genre
-from serializers import BookSerializer, BookCreateSerializer
+from .serializers import BookSerializer, BookCreateSerializer
 
 def authors(request):
     authors = Author.objects.all()

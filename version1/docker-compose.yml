@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  django:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    volumes:
+      - ./app/config:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - WAIT_HOSTS=db:5432
+      - WAIT_TIMEOUT=30
+
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    volumes:
+      - ./bot:/app
+    depends_on:
+      - django
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: myproject
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+volumes:
+  postgres_data:

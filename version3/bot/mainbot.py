@@ -49,25 +49,20 @@ async def process_phone_number(message: types.Message, state: FSMContext):
 @dp.message(StateFilter(Registration.waiting_for_address))
 async def process_address(message: types.Message, state: FSMContext):
     address = message.text
+    await state.update_data(address=address)
+    data = await state.get_data()
+    phone_number = data.get('phone_number')
+    address = data.get('address')
 
-    # Проверка адреса через API
-    response = requests.get(f'http://api.example.com/check_address?address={address}')
-    if response.json().get('is_valid'):
-        await state.update_data(address=address)
-        data = await state.get_data()
-        user_data = {
-            'phone_number': data['phone_number'],
-            'address': data['address']
-        }
-        response = requests.post(API_URL, json=user_data)
-
-        if response.status_code == 201:
-            await message.answer(f"Благодарим за регистрацию в боте, теперь вы будете получать уведомления об отключениях по адресу {address}.")
-        else:
-            await message.answer("Произошла ошибка при сохранении данных. Пожалуйста, попробуйте снова.")
-        await state.clear()
+    # Отправка данных на сервер
+    response = requests.post(API_URL, json={'phone_number': phone_number, 'address': address})
+    if response.status_code == 200:
+        await message.answer("Данные успешно отправлены на сервер.")
     else:
-        await message.answer(f"Адрес {address} введен неверно. Пример, г. Ростов-на-Дону, ул. Садовая, д. 4")
+        await message.answer("Ошибка отправки данных на сервер.")
+
+    # Очистка данных в FSM
+    await state.clear()
 
 async def main():
     await dp.start_polling(bot)

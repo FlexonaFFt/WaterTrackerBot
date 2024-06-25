@@ -1,4 +1,5 @@
 #type: ignore
+# bot.py
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart, Command
@@ -6,13 +7,14 @@ from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram import F
 from config import BOT_TOKEN, DB_CONFIG
 from database import Database
 
 bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
-db = Database(DB_CONFIG)
+dp = Dispatcher(storage=MemoryStorage())
 
+db = Database(DB_CONFIG)
 
 class RegistrationState(StatesGroup):
     phone_number = State()
@@ -20,25 +22,24 @@ class RegistrationState(StatesGroup):
 
 @dp.message(CommandStart())
 async def start_command(message: Message):
-    await message.answer("Привет! Это телеграм бота на aiogram! \n\n
-        Используйте команду /регистрация для регистрации или /статус для проверки статуса.")
+    await message.answer("Привет! Это бот на aiogram и psycopg3. Используйте команду /регистрация для регистрации или /статус для проверки статуса.")
 
-@dp.message(Command(commands=['регистрация']))
-async def register_command(message: Message, state: FMSContext):
-    user = await db.get_user_by_username(message.from_user_username)
+@dp.message(Command(commands=["регистрация"]))
+async def register_command(message: Message, state: FSMContext):
+    user = await db.get_user_by_username(message.from_user.username)
     if user:
-        await massage.answer("Вы уже зарегистрированы")
+        await message.answer("Вы уже зарегистрированы!")
     else:
         await state.set_state(RegistrationState.phone_number)
-        await message.answer("Пожалуйста, отправьте ваш номер телефона")
+        await message.answer("Пожалуйста, отправьте ваш номер телефона.")
 
-@dp.message(state=RegistrationState.phone_number)
+@dp.message(RegistrationState.phone_number)
 async def process_phone_number(message: Message, state: FSMContext):
     await state.update_data(phone_number=message.text)
     await state.set_state(RegistrationState.firstname)
-    await message.answer("Пожалуйста, отправьте ваше имя")
+    await message.answer("Пожалуйста, отправьте ваше имя.")
 
-@dp.message(state=RegistrationState.firstname)
+@dp.message(RegistrationState.firstname)
 async def process_firstname(message: Message, state: FSMContext):
     data = await state.get_data()
     phone_number = data['phone_number']

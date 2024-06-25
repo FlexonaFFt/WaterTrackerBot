@@ -61,10 +61,10 @@ class Database:
         return await self.fetchall("SELECT id, phone_number, username, firstname FROM TelegramUsers;")
 
     async def get_user_by_id(self, user_id):
-            return await self.fetchone("SELECT * FROM TelegramUsers WHERE id = %s;", user_id)
+        return await self.fetchone("SELECT * FROM TelegramUsers WHERE id = %s;", user_id)
 
-        async def get_user_by_username(self, username):
-            return await self.fetchone("SELECT * FROM TelegramUsers WHERE username = %s;", username)
+    async def get_user_by_username(self, username):
+        return await self.fetchone("SELECT * FROM TelegramUsers WHERE username = %s;", username)
 
     async def get_mailings(self):
         return await self.fetchall("SELECT id, username_tg, date_send, error_text FROM Mailing;")

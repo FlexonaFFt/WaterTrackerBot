@@ -8,10 +8,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import F
-from config import DB_CONFIG
+from config import BOT_TOKEN, DB_CONFIG
 from database import Database
 
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 db = Database(DB_CONFIG)

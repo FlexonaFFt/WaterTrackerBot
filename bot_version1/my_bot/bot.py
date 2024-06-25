@@ -1,6 +1,6 @@
 #type: ignore
-# bot.py
 import asyncio
+import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
@@ -8,13 +8,16 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import F
-from config import BOT_TOKEN, DB_CONFIG
+from config import DB_CONFIG
 from database import Database
 
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
-
 db = Database(DB_CONFIG)
+
+if not BOT_TOKEN:
+    exit("Ошибка TELEGRAM_BOT_TOKEN in env variable")
 
 class RegistrationState(StatesGroup):
     phone_number = State()

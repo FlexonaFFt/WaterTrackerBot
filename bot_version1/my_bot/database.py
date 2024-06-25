@@ -34,7 +34,7 @@ class Database:
         await self.execute("""
         CREATE TABLE IF NOT EXISTS TelegramUsers (
             id SERIAL PRIMARY KEY,
-            phone_number VARCHAR(15),
+            phone_number VARCHAR(25),
             username VARCHAR(25),
             firstname VARCHAR(25)
         );

@@ -1,15 +1,16 @@
 #type: ignore
-import asyncio
 import os
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
-from aiogram.fsm.storage.memory import MemoryStorage
+import asyncio
+import keyboards as kb
 from aiogram import F
-from config import BOT_TOKEN, DB_CONFIG
 from database import Database
+from aiogram.types import Message
+from config import BOT_TOKEN, DB_CONFIG
+from aiogram.fsm.context import FSMContext
+from aiogram import Bot, Dispatcher, types
+from aiogram.fsm.state import StatesGroup, State
+from aiogram.filters import CommandStart, Command
+from aiogram.fsm.storage.memory import MemoryStorage
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
@@ -24,9 +25,9 @@ class RegistrationState(StatesGroup):
 
 @dp.message(CommandStart())
 async def start_command(message: Message):
-    await message.answer("Привет! Это бот на aiogram и psycopg3. Используйте команду /регистрация для регистрации или /статус для проверки статуса.")
+    await message.answer("Привет! Это бот на aiogram и psycopg3. \n\nИспользуйте команду 'Регистрация' для регистрации или 'Статус' проверки статуса.", reply_markup=kb.invite_button_grid)
 
-@dp.message(Command(commands=["регистрация"]))
+@dp.message(F.text.lower() == 'регистрация')
 async def register_command(message: Message, state: FSMContext):
     user = await db.get_user_by_username(message.from_user.username)
     if user:
@@ -52,7 +53,7 @@ async def process_firstname(message: Message, state: FSMContext):
     await message.answer("Вы успешно зарегистрированы!")
     await state.clear()
 
-@dp.message(Command(commands=["статус"]))
+@dp.message(F.text.lower() == 'статус')
 async def status_command(message: Message):
     user = await db.get_user_by_username(message.from_user.username)
     if user:

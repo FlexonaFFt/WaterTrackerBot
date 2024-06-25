@@ -1,0 +1,7 @@
+version: '3'
+services:
+  telegram-bot:
+    build: .
+    environment:
+      - BOT_TOKEN=6789115472:AAGKYbONCUFmgl99xGwVVbG8CPrD_4iO_ok
+    restart: always

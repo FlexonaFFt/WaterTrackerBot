@@ -1,6 +1,6 @@
 CREATE TABLE TelegramUsers (
     id SERIAL PRIMARY KEY,
-    phone_number VARCHAR(15),
+    phone_number VARCHAR(25),
     username VARCHAR(25),
     firstname VARCHAR(25)
 );

@@ -24,10 +24,9 @@ invite_button_grid_for_registrated = ReplyKeyboardMarkup(
 
 
 auto_phone_button = KeyboardButton(text='Автоматически дать контакт', request_contact=True)
-manual_phone_button = KeyboardButton(text='Ввести вручную')
 
 buttons_for_registration = ReplyKeyboardMarkup(
-    keyboard=[[auto_phone_button], [manual_phone_button]],
+    keyboard=[[auto_phone_button]],
     input_field_placeholder='Выберите команду',
     resize_keyboard=True
 )

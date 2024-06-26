@@ -22,6 +22,7 @@ if not BOT_TOKEN:
 class RegistrationState(StatesGroup):
     phone_number = State()
     firstname = State()
+    adress = State()
 
 @dp.message(CommandStart())
 async def start_command(message: Message):
@@ -70,16 +71,25 @@ async def process_phone_number(message: Message, state: FSMContext):
 @dp.message(RegistrationState.firstname)
 async def process_firstname(message: Message, state: FSMContext):
     try:
-        data = await state.get_data()
-        phone_number = data['phone_number']
-        firstname = message.text
-        username = message.from_user.username
-
-        await db.add_user(phone_number, username, firstname)
-        await message.answer("Вы успешно зарегистрированы!")
-        await state.clear()
+        await state.update_data(firstname=message.text)
+        await message.answer("Отлично, осталось лишь узнать ваш адрес. \n\nПожалуйста, в точности напишите свой адрес для соотнесения его с базой.", \
+            reply_markup=kb.buttons_remove)
+        await state.set_state(RegistrationState.adress)
     except:
         await message.answer("Что-то пошло не так. Попробуйте ещё раз позже.")
+
+@dp.message(RegistrationState.adress)
+async def process_adress(message: Message, state: FSMContext):
+    data = await state.get_data()
+    data['adress'] = message.text  # Save the address in the state
+    phone_number = data['phone_number']
+    firstname = data['firstname']
+    username = message.from_user.username
+
+    await db.add_user(phone_number, username, firstname, data['adress'])
+    await state.set_state(RegistrationState.adress)
+    await message.answer("Вы успешно зарегистрированы!")
+    await state.clear()
 
 @dp.message(F.text.lower() == 'статус')
 async def status_command(message: Message):

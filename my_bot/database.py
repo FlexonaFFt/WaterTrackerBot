@@ -36,7 +36,8 @@ class Database:
             id SERIAL PRIMARY KEY,
             phone_number VARCHAR(25),
             username VARCHAR(25),
-            firstname VARCHAR(25)
+            firstname VARCHAR(25),
+            adress VARCHAR(255)
         );
         """)
 
@@ -49,16 +50,16 @@ class Database:
         );
         """)
 
-    async def add_user(self, phone_number, username, firstname):
-        await self.execute("INSERT INTO TelegramUsers (phone_number, username, firstname)\
-            VALUES (%s, %s, %s) RETURNING id;", phone_number, username, firstname)
+    async def add_user(self, phone_number, username, firstname, adress):
+        await self.execute("INSERT INTO TelegramUsers (phone_number, username, firstname, adress)\
+            VALUES (%s, %s, %s, %s) RETURNING id;", phone_number, username, firstname, adress)
 
     async def add_mailing(self, username_tg, date_send, error_text):
         await self.execute("INSERT INTO Mailing (username_tg, date_send, error_text)\
-            VALUES (%s, %s, %s);", username_tg, date_send, error_text)
+            VALUES (%s, %s, %s, %s);", username_tg, date_send, error_text)
 
     async def get_users(self):
-        return await self.fetchall("SELECT id, phone_number, username, firstname FROM TelegramUsers;")
+        return await self.fetchall("SELECT id, phone_number, username, firstname, adress FROM TelegramUsers;")
 
     async def get_user_by_id(self, user_id):
         return await self.fetchone("SELECT * FROM TelegramUsers WHERE id = %s;", user_id)

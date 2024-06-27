@@ -6,4 +6,4 @@
 - Прописать алгоритм получения адреса
 
 Коммит, где нормально работал код для регистрации:
---load bot_verison1 --update 2
+--load --stable version of registration

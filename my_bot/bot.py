@@ -81,7 +81,7 @@ async def process_firstname(message: Message, state: FSMContext):
 @dp.message(RegistrationState.adress)
 async def process_adress(message: Message, state: FSMContext):
     data = await state.get_data()
-    data['adress'] = message.text  # Save the address in the state
+    data['adress'] = message.text
     phone_number = data['phone_number']
     firstname = data['firstname']
     username = message.from_user.username

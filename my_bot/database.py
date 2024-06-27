@@ -12,7 +12,7 @@ class Database:
     async def connect(self):
         self.connection = await psycopg.AsyncConnection.connect(**self.config)
 
-    async def disconnection(self):
+    async def disconnect(self):
         await self.connection.close()
 
     async def execute(self, query, *params):

@@ -12,6 +12,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.filters import CommandStart, Command
 
+
 class TelegramBot:
     def __init__(self, token, db_config, api_token):
         self.bot = Bot(token)
@@ -29,6 +30,7 @@ class TelegramBot:
         self.dp.startup.register(self.on_startup)
         self.dp.shutdown.register(self.on_shutdown)
         self.dp.run_polling(self.bot)
+
 
 class TelegramFunctions:
     class RegistrationState(StatesGroup):
@@ -119,6 +121,7 @@ class TelegramFunctions:
                     await message.answer("Вы не зарегистрированы!")
             except:
                 await message.answer("Что-то пошло не так. Попробуйте ещё раз позже.")
+
 
 if __name__ == '__main__':
     if not BOT_TOKEN:

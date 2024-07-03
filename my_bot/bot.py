@@ -6,7 +6,7 @@ from aiogram import F
 import keyboards as kb
 from database import Database
 from aiogram import Bot, Dispatcher, types
-from config import BOT_TOKEN, DB_CONFIG, API_TOKEN
+from config import BOT_TOKEN, DB_CONFIG, API_TOKEN, DATUM_API_LINK
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -37,6 +37,7 @@ class TelegramFunctions:
         phone_number = State()
         firstname = State()
         adress = State()
+        response = State()
 
     def __init__(self, dp, db, bot):
         self.dp = dp
@@ -100,13 +101,67 @@ class TelegramFunctions:
 
         @self.dp.message(self.RegistrationState.adress)
         async def process_adress(message: types.Message, state: FSMContext):
-            data = await state.get_data()
-            data['adress'] = message.text
+            try:
+                headers = {'Authorization': f'Bearer {API_TOKEN}'}
+                params = {'search__in': user_address}
+                response = requests.get(API_URL, headers=headers, params=params)
+
+                data = await state.get_data()
+                data['adress'] = message.text
+
+                ''' Здесь необходимо будет прописать алгоритм для сравнения
+                введённого адреса с существующим в базе API. Если адрес существует,
+                то необхоидимо уведомить пользователя об успешной регистрации и
+                внедрить точный адрес в базу данных PostgreSQL. В противном случае
+                нужно уведомить пользователя о том что его адрес неккорректен и
+                попросить его написать более точный адрес'''
+
+                '''
+                def adress_analyzer(user_adress, api_adress):
+                    user_components = re.split(r'[,\.]', user_address.strip())
+                    api_components = re.split(r'[,\.]', api_address.strip())
+                    similariry_counter = 0
+                    status = False
+
+                    for user_comp, api_comp in zip(user_components, api_components):
+                        if user_comp.lower() in api_comp.lower():
+                            similariry_counter += 1
+
+                    accuracy = (match_count / max(len(user_components), len(api_components)))
+                    if accuracy >= 80:
+                        status = True
+                    else:
+                        status = False'''
+
+                if response.status_code == 200:
+                    api_adresses = response.json()
+
+                    if api_adresses:
+                        for adress in api_adresses:
+                            if user_address.lower() in address.lower():
+                                await message.answer('Адрес найден в системе. Сравнение...')
+                                await message.answer('Адреса совпадают!')
+                                return
+                        await message.answer('Адреса не совпадают. Пожалуйста, уточните введенный адрес.')
+                    else:
+                        await message.answer('Адрес не найден в системе.')
+                else:
+                    await message.answer('Не удалось найти адрес. Попробуйте позже.')
+
+            except Exception as e:
+                await message.answer('Произошла ошибка при сравнении адресов. Попробуйте позже.')
+                print(f'Error: {e}')
+
+            await state.set_state(self.RegistrationState.response)
+
+        @self.dp.message(self.RegistrationState.response)
+        async def process_request(messages: types.Message, state: FSMContext):
+            adress = data['adress']
             phone_number = data['phone_number']
             firstname = data['firstname']
             username = message.from_user.username
 
-            await self.db.add_user(phone_number, username, firstname, data['adress'])
+            await self.db.add_user(phone_number, username, firstname, adress)
             await state.set_state(self.RegistrationState.adress)
             await message.answer("Вы успешно зарегистрированы!")
             await state.clear()

@@ -1,12 +1,13 @@
 #type: ignore
 import os
+import base64
 import asyncio
 import requests
 from aiogram import F
 import keyboards as kb
 from database import Database
 from aiogram import Bot, Dispatcher, types
-from config import BOT_TOKEN, DB_CONFIG, API_TOKEN
+from config import BOT_TOKEN, DB_CONFIG, API_TOKEN, API_URL, API_LOGIN, API_PASSWORD
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -37,6 +38,7 @@ class TelegramFunctions:
         phone_number = State()
         firstname = State()
         adress = State()
+        response = State()
 
     def __init__(self, dp, db, bot):
         self.dp = dp
@@ -100,15 +102,63 @@ class TelegramFunctions:
 
         @self.dp.message(self.RegistrationState.adress)
         async def process_adress(message: types.Message, state: FSMContext):
+            try:
+                user_address = message.text
+
+                credentials = f'{API_LOGIN}:{API_PASSWORD}'
+                encoded_credentials = base64.b64encode(credentials.encode('ascii')).decode('ascii')
+                headers = {'Authorization': f'Basic {encoded_credentials}'}
+                params = {'search': user_address}
+                response = requests.get(API_URL, headers=headers, params=params)
+
+                data = await state.get_data()
+                data['adress'] = user_address
+                await state.update_data(data)
+
+                if response.status_code == 200:
+                    print('Успешная авторизация')
+                    api_adresses = response.json()
+
+                    if api_adresses:
+                        for api_address in api_adresses:
+                            if isinstance(api_address, dict):
+                                if user_address.lower() in api_address.get('address', '').lower():
+                                    await message.answer('Адрес найден в системе. Сравнение...')
+                                    await message.answer('Адреса совпадают!')
+                                    await state.set_state(self.RegistrationState.response)
+                                    return
+                                elif user_address.lower() in api_address.lower():
+                                    await message.answer('Адрес найден в системе. Сравнение...')
+                                    await message.answer('Адреса совпадают!')
+                                    await state.set_state(self.RegistrationState.response)
+                                    return
+                        await message.answer('Адреса не совпадают. Пожалуйста, уточните введенный адрес.')
+                    else:
+                        await message.answer('Адрес не найден в системе.')
+                else:
+                    await message.answer('Не удалось найти адрес. Попробуйте позже.')
+                    print(f'Error: {response.status_code} - {response.text}')
+                    await state.set_state(self.RegistrationState.adress)
+
+            except Exception as e:
+                await message.answer('Произошла ошибка при сравнении адресов. Попробуйте позже.')
+                print(f'Error: {e}')
+                await state.set_state(self.RegistrationState.adress)
+
+            await state.set_state(self.RegistrationState.response)
+
+        @self.dp.message(self.RegistrationState.response)
+        async def process_request(messages: types.Message, state: FSMContext):
+
             data = await state.get_data()
-            data['adress'] = message.text
+            adress = data['adress']
             phone_number = data['phone_number']
             firstname = data['firstname']
-            username = message.from_user.username
+            username = messages.from_user.username
 
-            await self.db.add_user(phone_number, username, firstname, data['adress'])
+            await self.db.add_user(phone_number, username, firstname, adress)
             await state.set_state(self.RegistrationState.adress)
-            await message.answer("Вы успешно зарегистрированы!")
+            await messages.answer("Вы успешно зарегистрированы!")
             await state.clear()
 
         @self.dp.message(F.text.lower() == 'статус')

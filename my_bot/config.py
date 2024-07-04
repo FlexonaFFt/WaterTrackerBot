@@ -7,6 +7,8 @@ load_dotenv()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 API_URL = os.getenv("DATUM_API_LINK")
 API_TOKEN = os.getenv("API_TOKEN")
+API_LOGIN = os.getenv("API_LOGIN")
+API_PASSWORD = os.getenv("API_PASSWORD")
 
 # Данные для подключения к базе данных
 DB_CONFIG = {

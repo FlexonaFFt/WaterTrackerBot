@@ -1,12 +1,13 @@
 #type: ignore
 import os
+import base64
 import asyncio
 import requests
 from aiogram import F
 import keyboards as kb
 from database import Database
 from aiogram import Bot, Dispatcher, types
-from config import BOT_TOKEN, DB_CONFIG, API_TOKEN, DATUM_API_LINK
+from config import BOT_TOKEN, DB_CONFIG, API_TOKEN, API_URL
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -102,36 +103,14 @@ class TelegramFunctions:
         @self.dp.message(self.RegistrationState.adress)
         async def process_adress(message: types.Message, state: FSMContext):
             try:
+                user_address = message.text
                 headers = {'Authorization': f'Bearer {API_TOKEN}'}
-                params = {'search__in': user_address}
+                params = {'search': user_address}
                 response = requests.get(API_URL, headers=headers, params=params)
 
                 data = await state.get_data()
-                data['adress'] = message.text
-
-                ''' Здесь необходимо будет прописать алгоритм для сравнения
-                введённого адреса с существующим в базе API. Если адрес существует,
-                то необхоидимо уведомить пользователя об успешной регистрации и
-                внедрить точный адрес в базу данных PostgreSQL. В противном случае
-                нужно уведомить пользователя о том что его адрес неккорректен и
-                попросить его написать более точный адрес'''
-
-                '''
-                def adress_analyzer(user_adress, api_adress):
-                    user_components = re.split(r'[,\.]', user_address.strip())
-                    api_components = re.split(r'[,\.]', api_address.strip())
-                    similariry_counter = 0
-                    status = False
-
-                    for user_comp, api_comp in zip(user_components, api_components):
-                        if user_comp.lower() in api_comp.lower():
-                            similariry_counter += 1
-
-                    accuracy = (match_count / max(len(user_components), len(api_components)))
-                    if accuracy >= 80:
-                        status = True
-                    else:
-                        status = False'''
+                data['adress'] = user_address
+                await state.update_data(data)
 
                 if response.status_code == 200:
                     api_adresses = response.json()
@@ -156,6 +135,8 @@ class TelegramFunctions:
 
         @self.dp.message(self.RegistrationState.response)
         async def process_request(messages: types.Message, state: FSMContext):
+
+            data = await state.get_data()
             adress = data['adress']
             phone_number = data['phone_number']
             firstname = data['firstname']

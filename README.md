@@ -9,8 +9,11 @@
 ** Пример .env фалйла
 
 ```
-TELEGRAM_BOT_TOKEN=67891
-DATUM_API_TOKEN='ПОКА ЕГО НЕТУ'
+TELEGRAM_BOT_TOKEN=#########################################
+DATUM_API_LINK=https:#########################################
+API_TOKEN=#########################################
+API_LOGIN=#################
+API_PASSWORD=#################
 YOUR_DATABASE_NAME=waterdbbot
 OUR_USERNAME=postgres
 YOUR_PASSWORD=postgres

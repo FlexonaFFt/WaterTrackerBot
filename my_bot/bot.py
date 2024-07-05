@@ -94,7 +94,7 @@ class TelegramFunctions:
         async def process_firstname(message: types.Message, state: FSMContext):
             try:
                 await state.update_data(firstname=message.text)
-                await message.answer("Отлично, осталось лишь узнать ваш адрес. \n\nПожалуйста, в точности напишите свой адрес для соотнесения его с базой.", \
+                await message.answer("Отлично, осталось лишь узнать ваш адрес. \n\nПожалуйста, в точности напишите свой адрес с точностью до улицы.\n\nЕсли ваш адрес 'г. Елабуга, проспект Нефтяников, д. 125'\nТо необходимо написать: Нефтяников 125.", \
                     reply_markup=kb.buttons_remove)
                 await state.set_state(self.RegistrationState.adress)
             except:
@@ -117,24 +117,39 @@ class TelegramFunctions:
 
                 if response.status_code == 200:
                     print('Успешная авторизация')
-                    api_adresses = response.json()
+                    api_addresses = response.json()['results']
 
-                    if api_adresses:
-                        for api_address in api_adresses:
-                            if isinstance(api_address, dict):
-                                if user_address.lower() in api_address.get('address', '').lower():
+                    if api_addresses:
+                        for api_address in api_addresses:
+                            if isinstance(api_address, dict) and 'full_address' in api_address:
+
+                                #Для проверки адресов необходимо подогнать их под одинаковые условия.
+                                api_address_str = api_address['full_address'].replace('г. ', '').replace('город ', '').replace('проспект ', '').replace('пр-кт ', '').replace('ул. ', '').replace('улица ', '').replace('д. ', '').replace('дом ', '').replace('пл. ', '').replace('площадь ', '').replace(',', '').replace('.', '')
+                                user_address_str = user_address.replace('г. ', '').replace('город ', '').replace('проспект ', '').replace('пр-кт ', '').replace('ул. ', '').replace('улица ', '').replace('д. ', '').replace('дом ', '').replace('пл. ', '').replace('площадь ', '').replace(',', '').replace('.', '')
+
+                                if user_address_str.lower() in api_address_str.lower():
                                     await message.answer('Адрес найден в системе. Сравнение...')
                                     await message.answer('Адреса совпадают!')
+                                    await message.answer('Подтвердите, приявязать этот адрес к вашему аккаунту?', \
+                                        reply_markup=kb.button_for_confirm)
+                                    print(user_address_str + '\n' + api_address_str)
                                     await state.set_state(self.RegistrationState.response)
                                     return
-                                elif user_address.lower() in api_address.lower():
-                                    await message.answer('Адрес найден в системе. Сравнение...')
-                                    await message.answer('Адреса совпадают!')
-                                    await state.set_state(self.RegistrationState.response)
-                                    return
-                        await message.answer('Адреса не совпадают. Пожалуйста, уточните введенный адрес.')
+                                else:
+                                    await message.answer('Адреса не совпадают. Пожалуйста, уточните введенный адрес.')
+                                    await state.set_state(self.RegistrationState.adress)
+                                    # Проверка ошибки совпадения
+                                    print(f'{api_address}')
+                                    print()
+                                    print(api_address_str)
+                                    print(user_address)
+                            else:
+                                await message.answer('Адреса не совпадают. Пожалуйста, уточните введенный адрес.')
+                                await state.set_state(self.RegistrationState.adress)
+                                print(f'{api_address}')
                     else:
                         await message.answer('Адрес не найден в системе.')
+                        await state.set_state(self.RegistrationState.adress)
                 else:
                     await message.answer('Не удалось найти адрес. Попробуйте позже.')
                     print(f'Error: {response.status_code} - {response.text}')
@@ -145,21 +160,24 @@ class TelegramFunctions:
                 print(f'Error: {e}')
                 await state.set_state(self.RegistrationState.adress)
 
-            await state.set_state(self.RegistrationState.response)
-
         @self.dp.message(self.RegistrationState.response)
-        async def process_request(messages: types.Message, state: FSMContext):
+        async def process_request(message: types.Message, state: FSMContext):
+            try:
+                data = await state.get_data()
+                adress = data['adress']
+                phone_number = data['phone_number']
+                firstname = data['firstname']
+                username = message.from_user.username
 
-            data = await state.get_data()
-            adress = data['adress']
-            phone_number = data['phone_number']
-            firstname = data['firstname']
-            username = messages.from_user.username
-
-            await self.db.add_user(phone_number, username, firstname, adress)
-            await state.set_state(self.RegistrationState.adress)
-            await messages.answer("Вы успешно зарегистрированы!")
-            await state.clear()
+                if message.text.lower() == 'подтвердить':
+                    await self.db.add_user(phone_number, username, firstname, adress)
+                    await message.answer("Вы успешно зарегистрированы!", reply_markup=kb.invite_button_grid_for_registrated)
+                    print("Регистрация пользователя прошла успешно!")
+                    await state.clear()
+                else:
+                    await message.answer('Пожалуйста, подтвердите адрес')
+            except:
+                await message.answer("Что-то пошло не так. Попробуйте ещё раз позже.")
 
         @self.dp.message(F.text.lower() == 'статус')
         async def status_command(message: types.Message):
